@@ -1,2 +1,5 @@
-# bits_project
-# bits_project
+BITS M.tech project
+
+
+
+Tetris game with neural networks

@@ -19,32 +19,40 @@ class Game:
     s_shape = None
     j_shape = None
     L_shape = None
-   
+  
+    container = None
+
     t_shape_a = [ [1, 1, 1],
                   [0, 1, 0]
                 ]
-    l_shape_a =  [ [ 1, 1],
-                   [ 1, 0],
-                   [ 1, 0],
-                 ]
-    z_shape_a =  [ [ 1, 1, 0],
-                   [ 0, 1, 1],
-                 ]
-    o_shape_a = [  [ 1, 1],
-                   [ 1, 1],
-                 ]
-    s_shape_a = [  [ 0, 1, 1],
-                   [ 1, 1, 0],
-                 ]
-    j_shape_a = [  [ 0, 1],
-                   [ 0, 1],
-                   [ 1, 1],
-                 ]
+    
+    l_shape_a = [ [ 1, 1],
+                  [ 1, 0],
+                  [ 1, 0],
+                ]
+
+    z_shape_a = [ [ 1, 1, 0],
+                  [ 0, 1, 1],
+                ]
+    
+    o_shape_a = [ [ 1, 1],
+                  [ 1, 1],
+                ]
+
+    s_shape_a = [ [ 0, 1, 1],
+                  [ 1, 1, 0],
+                ]
+
+    j_shape_a = [ [ 0, 1],
+                  [ 0, 1],
+                  [ 1, 1],
+                ]
+
     L_shape_a = [  [ 1],
                    [ 1],
                    [ 1],
                    [ 1],
-                 ]
+                ]
    
     # init method 
     def __init__(self, s_h, s_w):
@@ -54,25 +62,32 @@ class Game:
         pygame.init()
         self.screen = pygame.display.set_mode((s_w, s_h)) 
         self.screen.fill(self.BACK_GROUND_COLOR)
-        #pygame.display.update()
         self.done = False
+        
+        self.loadImage()
+
+        self.b_width = self.block.get_size()[0]
+        self.b_height = self.block.get_size()[1]
+        
+        self.cols = self.s_w / self.b_width
+        self.rows = self.s_h / self.b_height
+        print (self.cols)
+        print (self.rows)
+        self.container = [[0]*self.cols]*self.rows
 
     # draw method to draw the shapes of tetris symbols
     def drawShape(self, arr, x, y):
         rows = len(arr)
         cols = len(arr[0])
 
-        b_width = self.block.get_size()[0]
-        b_height = self.block.get_size()[1]
-
-        x = b_height * x
-        y = b_width * y
+        x = self.b_height * x
+        y = self.b_width * y
 
         for i in range(cols):
             for j in range(rows):
                 try:
                     if arr[j][i] == 1:
-                        self.screen.blit(self.block, ((x+ ( b_height *i )), (y+ (b_width *j))))
+                        self.screen.blit(self.block, ((x+ ( self.b_height *i )), (y+ (self.b_width *j))))
                 except:
                     print ('error ' + str(i))
                     
@@ -85,32 +100,27 @@ class Game:
 
     # temp method to draw lines
     def drawLine(self, x, y, e_x, e_y):
-       pygame.draw.line(self.screen, self.GREEN, [x, y], [e_x, e_y], 2)  
+        pygame.draw.line(self.screen, self.GREEN, [x, y], [e_x, e_y], 2)  
 
+    def addSymbolToGame(self):
+        pass
+    
     # main game loop
     def displayGame(self):
-        self.loadImage()
-
-        b_width = self.block.get_size()[0]
-        b_height = self.block.get_size()[1]
-
-        no_w = self.s_w / b_width
-        no_h = self.s_h / b_height
-
-        self.drawShape(self.t_shape_a, 0, 0) 
-        self.drawShape(self.l_shape_a, 5, 0) 
-        self.drawShape(self.L_shape_a, 8, 0) 
-
+        #self.drawShape(self.t_shape_a, 0, 0) 
+        #self.drawShape(self.l_shape_a, 5, 0) 
+        #self.drawShape(self.L_shape_a, 8, 0) 
+        self.drawShape(self.container, 0, 0)
         while not self.done:
             for event in pygame.event.get():
                 if event.type == pygame.QUIT:
                     self.done = True
 
-            for i in range(no_h+1):
-                self.drawLine( 0, i * b_height, self.s_w ,  i * b_height)
+            for i in range(self.rows+1):
+                self.drawLine( 0, i * self.b_height, self.s_w ,  i * self.b_height)
 
-            for i in range(no_w+1):
-                self.drawLine(i * b_width, 0,  i * b_height, self.s_h )
+            for i in range(self.cols+1):
+                self.drawLine(i * self.b_width, 0,  i * self.b_height, self.s_h )
 
             pygame.display.flip()
 

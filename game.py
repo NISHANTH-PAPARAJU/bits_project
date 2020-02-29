@@ -134,7 +134,7 @@ class Game:
                     print ('self.anytime ' + str(j))
                     print ('self.current_y ' + str(self.current_y))
                     print ('height '+ str(len(self.current_arr[self.current_index])))
-                    if self.current_y+len(self.current_arr[self.current_index])+1   > j and self.current_x :
+                    if self.current_y+len(self.current_arr[self.current_index])+1   > j and self.current_x == i:
                         self.speed_rate = 0
                         self.addSymbolToGame(self.current_arr[self.current_index])
                         self.current_x = self.DEFAULT_POS

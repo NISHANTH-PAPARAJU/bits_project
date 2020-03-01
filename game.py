@@ -95,6 +95,7 @@ class Game:
         
         self.cols = self.s_w // self.b_width
         self.rows = self.s_h // self.b_height
+        print(self.rows)
         self.make_2darray()
 
     def make_2darray(self):
@@ -104,47 +105,54 @@ class Game:
                  column.append(0)
             self.container.append(column)
             
+    def printCurrentArr(self, arr):
+        row = len(arr)
+        col = len(arr[0])
+        for i in range(row):
+            for j in range(col):
+                print (arr[i][j], end=' ')
+            print()
 
     # draw method to draw the shapes of tetris symbols
     def drawShape(self, arr, x, y):
-        x = self.b_height * x
-        y = self.b_width * y
         row = len(arr)
         col = len(arr[0])
-        for i in range(col):
-            for j in range(row):
-                if arr[j][i] == 1:
-                    self.screen.blit(self.block, ((x+ ( self.b_width  *i )), ((y)+ (self.b_height *j))))
-                    if  (((y)+ (self.b_width *j))) > (self.s_h-(self.b_height*2)):
+        for i in range(row):
+            for j in range(col):
+                if arr[i][j] == 1:
+                    print ( 'i ,j ' + str(i) +',' + str(j))
+                    self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
+        if  self.current_y + len(self.current_arr[self.current_index])  > self.rows:
+                        breakpoint()
+                        print ('self.current_y ' + str(self.current_y))
+                        print ('len(self.current_arr[self.current_index]) :' + str(len(self.current_arr[self.current_index])))
+                        self.printContainer()
                         self.speed_rate = 0
                         self.addSymbolToGame(self.current_arr[self.current_index])
                         self.current_x = self.DEFAULT_POS
-                        self.current_y = 1
+                        self.current_y = 0
                         self.speed_rate = self.magic_number
-                    
+        
     # draw method to draw the shapes of tetris symbols
     def drawContainer(self, arr):
         row = len(arr)
         col = len(arr[0])
-        for i in range(col):
-            for j in range(row):
-                
-                if arr[j][i] == 1:
-                    self.screen.blit(self.block, ( self.b_width *i , self.b_height *j))
-                    print ('self.anytime ' + str(j))
+        for i in range(row):
+            for j in range(col):
+                if arr[i][j] == 1:
+                    self.screen.blit(self.block, ( self.b_width *j , self.b_height *i))
+                    print ('self.anytime ' + str(i) + ',' + str(j))
                     print ('self.current_y ' + str(self.current_y))
                     print ('height '+ str(len(self.current_arr[self.current_index])))
-                    if self.current_y+len(self.current_arr[self.current_index])+1   > j and self.current_x == i:
+                    print ( (self.current_y + (len(self.current_arr[self.current_index]) + 1)))
+                    if self.current_y + len(self.current_arr[self.current_index])    == i and self.current_x == j:
                         self.speed_rate = 0
                         self.addSymbolToGame(self.current_arr[self.current_index])
                         self.current_x = self.DEFAULT_POS
-                        self.current_y = 1
+                        self.current_y = 0
                         self.speed_rate = self.magic_number
                     
-                    
-
-
-                    
+                                    
     # load the basic block of tetris
     def loadImage(self):
         self.block = pygame.image.load(r'./data/roundedBlock.png') 
@@ -154,20 +162,29 @@ class Game:
 
     # temp method to draw lines
     def drawLine(self, x, y, e_x, e_y):
-        pygame.draw.line(self.screen, self.GREEN, [x, y], [e_x, e_y], 2)  
-
+        pygame.draw.line(self.screen, self.GREEN, [x, y], [e_x, e_y], 2)
+        
     def addSymbolToGame(self, arr):
+         self.printCurrentArr(arr)
          row = len(arr)
          col = len(arr[0])
-         for i in range(col):
-             for j in range(row):
-                 self.container[j+self.current_y][i+self.current_x]= arr[j][i]
-                 print ('y pos ' + str(j+self.current_y))
+         print ( 'c row ' + str(len(self.container)))
+         print ( 'c col ' + str(len(self.container[0])))
+         for i in range(row):
+             for j in range(col):
+                 print ('y pos ' + str(j)+ ',' + str(self.current_y-1))
+                 print ('x pos ' + str(i+self.current_x))
+                 self.container[i+self.current_y-1][j+self.current_x] = arr[i][j]
+         self.printContainer()
 
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
         index = random.randint(0,6)
         self.current_arr = self.t_shape_a#a[index]
+        
+    def printContainer(self):
+        for row in self.container:
+            print (row)
     
     # main game loop
     def displayGame(self):

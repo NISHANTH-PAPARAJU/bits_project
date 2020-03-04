@@ -132,6 +132,7 @@ class Game:
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
                         self.speed_rate = self.magic_number
+                        self.pad =  len(self.current_arr[self.current_index]) 
         
     # draw method to draw the shapes of tetris symbols
     def drawContainer(self, arr):
@@ -145,13 +146,16 @@ class Game:
                     print ('self.current_y ' + str(self.current_y))
                     print ('height '+ str(len(self.current_arr[self.current_index])))
                     print ( (self.current_y + (len(self.current_arr[self.current_index]) + 1)))
-                    if self.current_y + len(self.current_arr[self.current_index])    == i and self.current_x == j:
+                    if self.current_y + self.pad  > i and self.current_x == j:
+                        breakpoint()
                         self.speed_rate = 0
+                        self.printContainer()
                         self.addSymbolToGame(self.current_arr[self.current_index])
+                        self.printContainer()
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
                         self.speed_rate = self.magic_number
-                    
+                        self.pad =  len(self.current_arr[self.current_index]) 
                                     
     # load the basic block of tetris
     def loadImage(self):
@@ -191,7 +195,7 @@ class Game:
         #self.drawShape(self.t_shape_a, 0, 0) 
         self.getRandomShape()
         
-        
+        self.pad =  len(self.current_arr[self.current_index]) 
         #self.drawShape(self.L_shape_a, 13, 0) 
         #self.drawShape(self.container, 0, 0)
         #self.printContainer()

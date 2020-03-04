@@ -97,7 +97,7 @@ class Game:
         self.rows = self.s_h // self.b_height
         print(self.rows)
         self.make_2darray()
-
+        
     def make_2darray(self):
         for j in range(self.rows):
             column = []
@@ -132,8 +132,17 @@ class Game:
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
                         self.speed_rate = self.magic_number
-                        self.pad =  len(self.current_arr[self.current_index]) 
         
+    def checkcollide(self, rect):
+        arr = self.current_arr[self.current_index]
+        row = len(arr)
+        col = len(arr[0])
+        for i in range(row):
+           for j in range(col):
+                if arr[i][j] == 1 and rect.colliderect((self.current_y +j)  * self.b_width, (self.current_x+i) * self.b_height, self.b_width, self.b_height):
+                   return True  
+        return False
+
     # draw method to draw the shapes of tetris symbols
     def drawContainer(self, arr):
         row = len(arr)
@@ -146,7 +155,7 @@ class Game:
                     print ('self.current_y ' + str(self.current_y))
                     print ('height '+ str(len(self.current_arr[self.current_index])))
                     print ( (self.current_y + (len(self.current_arr[self.current_index]) + 1)))
-                    if self.current_y + self.pad  > i and self.current_x == j:
+                    if self.current_y + self.pad  > i :
                         breakpoint()
                         self.speed_rate = 0
                         self.printContainer()
@@ -155,12 +164,12 @@ class Game:
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
                         self.speed_rate = self.magic_number
-                        self.pad =  len(self.current_arr[self.current_index]) 
                                     
     # load the basic block of tetris
     def loadImage(self):
         self.block = pygame.image.load(r'./data/roundedBlock.png') 
         self.block = pygame.transform.scale(self.block, (10, 10))
+        self.rect = self.block.get_rect()
         #self.screen.blit(self.block, (0, 0))
         #pygame.display.flip()
 
@@ -237,6 +246,7 @@ class Game:
         self.current_index += 1
         if self.current_index > l-1:
            self.current_index = 0
+        self.pad =  len(self.current_arr[self.current_index]) 
 
 game = Game(405, 305)
 game.displayGame()

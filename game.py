@@ -44,32 +44,73 @@ class Game:
                  ],
                 ]
     
-    l_shape_a = [ [ 1, 1],
+    l_shape_a = [[[ 1, 1],
                   [ 1, 0],
                   [ 1, 0],
-                ]
+                  ],
 
-    z_shape_a = [ [ 1, 1, 0],
-                  [ 0, 1, 1],
-                ]
-    
-    o_shape_a = [ [ 1, 1],
-                  [ 1, 1],
-                ]
+                 [[ 1, 1, 1],
+                  [ 0, 0, 1]],
 
-    s_shape_a = [ [ 0, 1, 1],
-                  [ 1, 1, 0],
-                ]
-
-    j_shape_a = [ [ 0, 1],
+                 [[ 0, 1],
                   [ 0, 1],
                   [ 1, 1],
+                  ],
+
+                 [[ 1, 0, 0],
+                  [ 1, 1, 1]],
+
                 ]
 
-    L_shape_a = [  [ 1],
+    z_shape_a = [[ [ 1, 1, 0],
+                   [ 0, 1, 1],
+                 ],
+                 [ [ 0, 1],
+                   [ 1, 1],
+                   [ 1, 0],
+                 ],
+                 [ [ 1, 1, 0],
+                   [ 0, 1, 1],
+                 ]
+               ]
+    
+    o_shape_a = [[ [ 1, 1],
+                   [ 1, 1],
+                 ]
+                ]
+
+    s_shape_a = [[ [ 0, 1, 1],
+                   [ 1, 1, 0],
+                 ],
+                 [ [ 1, 0],
+                   [ 1, 1],
+                   [ 0, 1],
+                 ]
+                ]
+
+    j_shape_a = [[ [ 0, 1],
+                   [ 0, 1],
+                   [ 1, 1],
+                 ],
+                 [ [1, 0, 0],
+                   [1, 1, 1],
+                 ],
+                 [ [1, 1],
+                   [1, 0],
+                   [1, 0]
+                 ],
+                 [ [1, 1, 1],
+                   [0, 0, 1],
+                 ],
+                ]
+
+    L_shape_a = [[ [ 1],
                    [ 1],
                    [ 1],
                    [ 1],
+                 ],
+                 [ [1],[1],[1],[1]
+                 ]
                 ]
 
     magic_number = 0.000000000001
@@ -121,9 +162,9 @@ class Game:
             for j in range(col):
                 if arr[i][j] == 1:
                     print ( 'i ,j ' + str(i) +',' + str(j))
-                    self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
+                    #self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
+                    pygame.draw.rect(self.screen, (0,0,255),  ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height, self.b_width, self.b_height))
         if  self.current_y + len(self.current_arr[self.current_index])  > self.rows:
-                        breakpoint()
                         print ('self.current_y ' + str(self.current_y))
                         print ('len(self.current_arr[self.current_index]) :' + str(len(self.current_arr[self.current_index])))
                         self.printContainer()
@@ -131,6 +172,7 @@ class Game:
                         self.addSymbolToGame(self.current_arr[self.current_index])
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
+                        self.getRandomShape()
                         self.speed_rate = self.magic_number
         
     def checkcollide(self, rect):
@@ -139,8 +181,11 @@ class Game:
         col = len(arr[0])
         for i in range(row):
            for j in range(col):
-                if arr[i][j] == 1 and rect.colliderect((self.current_y +j)  * self.b_width, (self.current_x+i) * self.b_height, self.b_width, self.b_height):
-                   return True  
+               if arr[i][j] == 1: 
+                   temp_rect = pygame.Rect(((self.current_x +j)  * self.b_width, (self.current_y+i) * self.b_height, self.b_width, self.b_height)) 
+                   pygame.draw.rect(self.screen, (0,255, 0), temp_rect)
+                   if rect.colliderect(temp_rect):
+                       return True
         return False
 
     # draw method to draw the shapes of tetris symbols
@@ -155,14 +200,16 @@ class Game:
                     print ('self.current_y ' + str(self.current_y))
                     print ('height '+ str(len(self.current_arr[self.current_index])))
                     print ( (self.current_y + (len(self.current_arr[self.current_index]) + 1)))
-                    if self.current_y + self.pad  > i :
-                        breakpoint()
+                    rect = pygame.Rect(( self.b_width *j , self.b_height *i, self.b_width, self.b_height))
+                    pygame.draw.rect(self.screen, (255,0, 0), rect)
+                    if self.checkcollide(rect):
                         self.speed_rate = 0
                         self.printContainer()
                         self.addSymbolToGame(self.current_arr[self.current_index])
                         self.printContainer()
                         self.current_x = self.DEFAULT_POS
                         self.current_y = 0
+                        self.getRandomShape()
                         self.speed_rate = self.magic_number
                                     
     # load the basic block of tetris
@@ -193,8 +240,9 @@ class Game:
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
         index = random.randint(0,6)
-        self.current_arr = self.t_shape_a#a[index]
-        
+        self.current_arr = a[index]
+        self.current_index = random.randint(0, len(self.current_arr))        
+
     def printContainer(self):
         for row in self.container:
             print (row)

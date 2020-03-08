@@ -358,7 +358,7 @@ class Game:
             self.screen.blit(text_next, ((self.DEFAULT_POS_X+23)*self.b_height, (self.DEFAULT_POS_Y+2 )  * self.b_height))
             self.screen.blit(text_score, ((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y+15 )  * self.b_height))
             text_o_score = self.font.render(str(self.score), True, (255, 255, 255)) 
-            self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+26)*self.b_height, (self.DEFAULT_POS_Y+21 )  * self.b_height))
+            self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+24)*self.b_height, (self.DEFAULT_POS_Y+21 )  * self.b_height))
             self.drawSecondBox()
             self.drawFourthBox()
             self.drawThirdBox()

@@ -342,6 +342,8 @@ class Game:
         self.right_rect = pygame.Rect(((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height-2, self.b_width*12, self.b_height*self.rows+4))
         text_score = self.font.render('SCORE', True, (255, 0, 0)) 
         text_next = self.font.render('NEXT', True, (255, 0, 0)) 
+        self.font.set_bold(True)
+        text_tetris = self.font.render('TETRIS', True, (0, 0, 255)) 
         while not self.done:
             self.screen.fill(self.BACK_GROUND_COLOR)
             self.speed_rate += self.speed_rate
@@ -351,6 +353,7 @@ class Game:
                 self.speed_rate = self.magic_number
             
             self.handleKeyEvent()                         
+            self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+5)*self.b_height, (2 )  * self.b_height))
             #self.displayLines()   
             self.screen.blit(text_next, ((self.DEFAULT_POS_X+23)*self.b_height, (self.DEFAULT_POS_Y+2 )  * self.b_height))
             self.screen.blit(text_score, ((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y+15 )  * self.b_height))

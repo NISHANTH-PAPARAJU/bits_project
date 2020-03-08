@@ -3,6 +3,7 @@ import random
 import time
 class Game:
 
+    # defines
     BACK_GROUND_COLOR = 0,0,0
     GREEN = (0, 200, 0 )
     DEFAULT_POS_X = 13
@@ -12,15 +13,19 @@ class Game:
     s_w = 0
     s_h = 0
     block = None
-    
-    container = []
-    current_arr = []
-    
-    current_index = 0
-      
-    clock = pygame.time.Clock()
+
     down_rect = None
     up_rect = None
+    right_rect = None 
+
+    container = []
+    current_arr = []
+     
+    score = 0
+    next_symbol_arr = []
+    current_index = 0
+    rand_index = -1  
+    clock = pygame.time.Clock()
     t_shape_a = [[ [1, 1, 1],
                    [0, 1, 0],
                  ],
@@ -108,7 +113,7 @@ class Game:
 
     magic_number = 0.000000000001
     speed_rate = magic_number
-               
+    font_size = 25           
     # init method 
     def __init__(self, s_h, s_w):
         self.s_w = s_w
@@ -135,14 +140,17 @@ class Game:
         self.current_x = self.DEFAULT_POS_X
         self.current_y = self.DEFAULT_POS_Y
         self.make_2darray()
-        
+        self.font = pygame.font.Font(r'./data/HOMOARAK.TTF', self.font_size) 
+
+    # make game array
     def make_2darray(self):
         for j in range(self.rows):
             column = []
             for i in range(self.cols):
                  column.append(0)
             self.container.append(column)
-            
+
+    #to display game array        
     def printCurrentArr(self, arr):
         row = len(arr)
         col = len(arr[0])
@@ -164,6 +172,7 @@ class Game:
                     if temp_rect.colliderect(self.down_rect):
                         self.dothings()               
 
+    # check whether the symbos are touching any other symbols
     def checkcollide(self, rect):
         arr = self.current_arr[self.current_index]
         row = len(arr)
@@ -179,6 +188,7 @@ class Game:
                        return 1
         return 0
 
+    # once any symbol is touched, the routine to swap a new symbol and reset positions
     def dothings(self):
         self.speed_rate = 0
         self.addSymbolToGame(self.current_arr[self.current_index])
@@ -206,14 +216,16 @@ class Game:
 
     #check if blocks are full
     def checkforfill(self):
+        j = 0
         for row in self.container:
             if 0 not in row:
                self.container.remove(row)
+               j += 1
                column = []
                for i in range(self.cols):
                    column.append(0)
                self.container.insert(0, column) 
-
+        self.score += j * 10
     # load the basic block of tetris
     def loadImage(self):
         self.block = pygame.image.load(r'./data/roundedBlock.png') 
@@ -224,6 +236,7 @@ class Game:
     def drawLine(self, x, y, e_x, e_y):
         pygame.draw.line(self.screen, self.GREEN, [x, y], [e_x, e_y], 1)
         
+    # copies the symbol to game array 
     def addSymbolToGame(self, arr):
          row = len(arr)
          col = len(arr[0])
@@ -232,18 +245,34 @@ class Game:
                  if self.container[i+(self.current_y-self.DEFAULT_POS_Y)-1][j+self.current_x-self.DEFAULT_POS_X] != 1: 
                      self.container[i+(self.current_y-self.DEFAULT_POS_Y)-1][j+self.current_x-self.DEFAULT_POS_X] = arr[i][j]
 
+    # Generates a new symbol after every touch
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
-        index = 2#random.randint(0,6)
+        index = random.randint(0,6)
         print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
-        self.current_arr = a[index]
-        self.current_index = 0#random.randint(0, len(self.current_arr)-1)        
+        self.next_symbol_arr.append(a[index]) 
+
+        if self.rand_index == -1:
+            self.current_index = random.randint(0, len(a[index])-1)        
+        else:
+            self.current_index = self.rand_index 
+            self.rand_index = random.randint(0, len(a[index])-1)        
+
+        if len(self.next_symbol_arr)==1:
+            index = random.randint(0,6)
+            print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
+            self.next_symbol_arr.append(a[index]) 
+            self.rand_index = random.randint(0, len(a[index])-1)        
+
+        self.current_arr = self.next_symbol_arr.pop(0) 
         print (self.current_index)
 
+    # Prints the game array
     def printContainer(self):
         for row in self.container:
             print (row)
 
+    # Handles the game events
     def handleKeyEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -265,38 +294,73 @@ class Game:
                     self.current_y += 1
                     return 1
         return 0
+
+    # Displays GameOver screen
     def gameOver(self):
         self.speed_rate = 0
         breakpoint()  
 
+    # Draws the game rect 
     def drawRectangle(self):
         temp_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height-2, (self.DEFAULT_POS_Y )  * self.b_height-2   , self.b_width*self.cols+4, self.b_height*self.rows+4)) 
         pygame.draw.rect(self.screen, (255,255, 0), temp_rect, 2)
 
+    # Displays a grid in entire game rect for understanding
     def displayLines(self):
         for i in range(self.rows+1):
                 self.drawLine(self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y + i)  * self.b_height,  (self.DEFAULT_POS_X * self.b_width)+(self.b_height * self.cols),  (self.DEFAULT_POS_Y + i) * self.b_height)
 
         for i in range(self.cols+1):
                 self.drawLine((self.DEFAULT_POS_X + i )* self.b_height, self.DEFAULT_POS_Y  * self.b_width, (self.DEFAULT_POS_X + i) * self.b_height,(self.DEFAULT_POS_Y  * self.b_width) +(self.b_width * self.rows))
-             
-    # main game loop
+
+    # to display score, next things
+    def drawSecondBox(self):
+        pygame.draw.rect(self.screen, (255,255, 0), self.right_rect,2)
+
+    def drawThirdBox(self):
+        temp_rect = pygame.Rect(((self.DEFAULT_POS_X+24)*self.b_height, (self.DEFAULT_POS_Y+5)  * self.b_height, self.b_width*7, self.b_height*8))
+        pygame.draw.rect(self.screen, (255, 0, 255), temp_rect, 2)  
+
+    def drawFourthBox(self):
+        temp_rect = pygame.Rect(((self.DEFAULT_POS_X+24)*self.b_height, (self.DEFAULT_POS_Y+18)  * self.b_height, self.b_width*7, self.b_height*8))
+        pygame.draw.rect(self.screen, (255, 0, 255), temp_rect, 2)  
+
+    def drawNextSymbol(self, arr):
+        row = len(arr)
+        col = len(arr[0])
+        for i in range(row):
+            for j in range(col):
+                if arr[i][j] == 1:
+                    self.screen.blit(self.block, ((self.DEFAULT_POS_X+26+j)*self.b_height, (self.DEFAULT_POS_Y+8+i )  * self.b_height))
+
+     # main game loop
     def displayGame(self):
         self.getRandomShape()
+
         self.down_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y + self.rows)  * self.b_height, self.b_width*self.cols, self.b_height)) 
         self.up_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height, self.b_width*self.cols, self.b_height)) 
-
+        self.right_rect = pygame.Rect(((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height-2, self.b_width*12, self.b_height*self.rows+4))
+        text_score = self.font.render('SCORE', True, (255, 0, 0)) 
+        text_next = self.font.render('NEXT', True, (255, 0, 0)) 
         while not self.done:
             self.screen.fill(self.BACK_GROUND_COLOR)
             self.speed_rate += self.speed_rate
-            pygame.draw.rect(self.screen, (255,255, 0), self.up_rect)
+            #pygame.draw.rect(self.screen, (255,255, 0), self.up_rect)
             if  self.speed_rate > 1:
                 self.current_y += 1
                 self.speed_rate = self.magic_number
             
             self.handleKeyEvent()                         
             #self.displayLines()   
+            self.screen.blit(text_next, ((self.DEFAULT_POS_X+23)*self.b_height, (self.DEFAULT_POS_Y+2 )  * self.b_height))
+            self.screen.blit(text_score, ((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y+15 )  * self.b_height))
+            text_o_score = self.font.render(str(self.score), True, (255, 255, 255)) 
+            self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+26)*self.b_height, (self.DEFAULT_POS_Y+21 )  * self.b_height))
+            self.drawSecondBox()
+            self.drawFourthBox()
+            self.drawThirdBox()
             self.drawRectangle()
+            self.drawNextSymbol(self.next_symbol_arr[0][self.rand_index])
             self.drawShape(self.current_arr[self.current_index], self.current_x, self.current_y )
             self.drawContainer(self.container)
             self.checkforfill() 

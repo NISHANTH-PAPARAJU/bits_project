@@ -111,7 +111,7 @@ class Game:
                  ]
                 ]
 
-    magic_number = 0.000000000001
+    magic_number = 1
     speed_rate = magic_number
     font_size = 25           
     # init method 
@@ -368,6 +368,7 @@ class Game:
             self.drawContainer(self.container)
             self.checkforfill() 
             pygame.display.flip()
+            self.clock.tick(2)
  
     # rotates the symbols in the game
     def rotate(self):

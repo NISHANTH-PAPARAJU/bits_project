@@ -21,11 +21,13 @@ class Game:
     container = []
     current_arr = []
      
+    drop_interval = 1000
+    m_time_drop = 0
+
     score = 0
     next_symbol_arr = []
     current_index = 0
     rand_index = -1  
-    clock = pygame.time.Clock()
     t_shape_a = [[ [1, 1, 1],
                    [0, 1, 0],
                  ],
@@ -172,6 +174,14 @@ class Game:
                     if temp_rect.colliderect(self.down_rect):
                         self.dothings()               
 
+    def drawOnlyShape(self, arr ):
+        row = len(arr)
+        col = len(arr[0])
+        for i in range(row):
+            for j in range(col):
+                if arr[i][j] == 1:
+                    self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
+
     # check whether the symbos are touching any other symbols
     def checkcollide(self, rect):
         arr = self.current_arr[self.current_index]
@@ -190,7 +200,9 @@ class Game:
 
     # once any symbol is touched, the routine to swap a new symbol and reset positions
     def dothings(self):
-        self.speed_rate = 0
+        self.speed_rate = 1
+        self.moveUp()
+        self.drawOnlyShape(self.current_arr[self.current_index])
         self.addSymbolToGame(self.current_arr[self.current_index])
         self.current_x = self.DEFAULT_POS_X
         self.current_y = self.DEFAULT_POS_Y
@@ -242,8 +254,8 @@ class Game:
          col = len(arr[0])
          for i in range(row):
              for j in range(col):
-                 if self.container[i+(self.current_y-self.DEFAULT_POS_Y)-1][j+self.current_x-self.DEFAULT_POS_X] != 1: 
-                     self.container[i+(self.current_y-self.DEFAULT_POS_Y)-1][j+self.current_x-self.DEFAULT_POS_X] = arr[i][j]
+                 if self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] != 1: 
+                     self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] = arr[i][j]
 
     # Generates a new symbol after every touch
     def getRandomShape(self):
@@ -272,6 +284,30 @@ class Game:
         for row in self.container:
             print (row)
 
+    # moves the shape one step high
+    def moveUp(self):
+        self.current_y -= 1
+        return 1
+         
+    # moves the shape one step down
+    def moveDown(self):
+        self.current_y += 1
+        return 1
+
+    # moves the shape one step right
+    def moveRight(self):
+        if self.current_x < self.rows:
+            self.current_x += 1
+            return 1
+        return 0
+
+    # moves the shape one step left
+    def moveLeft(self):
+        if self.current_x > self.DEFAULT_POS_X + 0:
+            self.current_x -= 1
+            return 1
+        return 0
+
     # Handles the game events
     def handleKeyEvent(self):
         for event in pygame.event.get():
@@ -280,19 +316,13 @@ class Game:
                 return 1
             if event.type == pygame.KEYDOWN:
                 if event.key == pygame.K_UP:
-                    self.rotate()
-                    return 1
+                   return  self.rotate()
                 if event.key == pygame.K_LEFT:
-                    if self.current_x > 0:
-                        self.current_x -= 1
-                        return 1
+                    return self.moveLeft()
                 if event.key == pygame.K_RIGHT:
-                    if self.current_x < self.rows:
-                        self.current_x += 1
-                        return 1
+                   return self.moveRight()
                 if event.key == pygame.K_DOWN:
-                    self.current_y += 1
-                    return 1
+                    self.moveDown()
         return 0
 
     # Displays GameOver screen
@@ -346,7 +376,10 @@ class Game:
         text_tetris = self.font.render('TETRIS', True, (0, 0, 255)) 
         while not self.done:
             self.screen.fill(self.BACK_GROUND_COLOR)
-            self.speed_rate += self.speed_rate
+
+            if pygame.time.get_ticks() > self.m_time_drop:
+                self.m_time_drop   = pygame.time.get_ticks() + self.drop_interval 
+                self.speed_rate += self.speed_rate
             #pygame.draw.rect(self.screen, (255,255, 0), self.up_rect)
             if  self.speed_rate > 1:
                 self.current_y += 1
@@ -368,7 +401,6 @@ class Game:
             self.drawContainer(self.container)
             self.checkforfill() 
             pygame.display.flip()
-            self.clock.tick(2)
  
     # rotates the symbols in the game
     def rotate(self):

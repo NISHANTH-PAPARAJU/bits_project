@@ -354,7 +354,7 @@ class Game:
             
             self.handleKeyEvent()                         
             self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+5)*self.b_height, (2 )  * self.b_height))
-            #self.displayLines()   
+            self.displayLines()   
             self.screen.blit(text_next, ((self.DEFAULT_POS_X+23)*self.b_height, (self.DEFAULT_POS_Y+2 )  * self.b_height))
             self.screen.blit(text_score, ((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y+15 )  * self.b_height))
             text_o_score = self.font.render(str(self.score), True, (255, 255, 255)) 

@@ -168,11 +168,12 @@ class Game:
         for i in range(row):
             for j in range(col):
                 if arr[i][j] == 1:
-                    self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
                     temp_rect = pygame.Rect(((self.current_x +j)  * self.b_width, (self.current_y+i) * self.b_height, self.b_width, self.b_height)) 
                    # pygame.draw.rect(self.screen, (0,0,255), temp_rect) 
                     if temp_rect.colliderect(self.down_rect):
-                        self.dothings()               
+                        self.dothings(i, j)               
+                        return 1
+                    self.screen.blit(self.block, ((j + self.current_x) * self.b_width ,  (i+ self.current_y) * self.b_height))
 
     def drawOnlyShape(self, arr ):
         row = len(arr)
@@ -199,10 +200,9 @@ class Game:
         return 0
 
     # once any symbol is touched, the routine to swap a new symbol and reset positions
-    def dothings(self):
-        self.speed_rate = 1
+    def dothings(self, i, j):
+        self.speed_rate = 0
         self.moveUp()
-        self.drawOnlyShape(self.current_arr[self.current_index])
         self.addSymbolToGame(self.current_arr[self.current_index])
         self.current_x = self.DEFAULT_POS_X
         self.current_y = self.DEFAULT_POS_Y
@@ -217,14 +217,16 @@ class Game:
         for i in range(row):
             for j in range(col):
                 if arr[i][j] == 1:
-                    self.screen.blit(self.block, ( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i)))
                     rect = pygame.Rect(( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i), self.b_width, self.b_height))
                     #pygame.draw.rect(self.screen, (255,0, 0), rect)
                     r =  self.checkcollide(rect)
                     if r == 1:
-                        self.dothings()               
+                        self.dothings(i, j)               
+                        return 1
                     elif r ==2:
                         self.gameOver() 
+                        return 1
+                    self.screen.blit(self.block, ( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i)))
 
     #check if blocks are full
     def checkforfill(self):
@@ -380,7 +382,7 @@ class Game:
             if pygame.time.get_ticks() > self.m_time_drop:
                 self.m_time_drop   = pygame.time.get_ticks() + self.drop_interval 
                 self.speed_rate += self.speed_rate
-            #pygame.draw.rect(self.screen, (255,255, 0), self.up_rect)
+           # pygame.draw.rect(self.screen, (255,255, 0), self.down_rect)
             if  self.speed_rate > 1:
                 self.current_y += 1
                 self.speed_rate = self.magic_number

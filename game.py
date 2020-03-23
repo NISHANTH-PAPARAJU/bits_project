@@ -133,8 +133,8 @@ class Game:
         self.b_width = self.block.get_size()[0]
         self.b_height = self.block.get_size()[1]
         
-        self.cols = self.s_w // self.b_width
-        self.rows = self.s_h // self.b_height
+        self.cols = (self.s_w // self.b_width)-10
+        self.rows = self.s_h // self.b_height-10
 
         self.DEFAULT_POS_X = self.cols//4
         self.DEFAULT_POS_Y = self.rows//4+1

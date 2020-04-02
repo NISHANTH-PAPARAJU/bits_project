@@ -1,6 +1,7 @@
 import pygame
 import random
 import time
+import numpy as np  
 class Game:
 
     # defines
@@ -141,6 +142,8 @@ class Game:
 
         self.current_x = self.DEFAULT_POS_X
         self.current_y = self.DEFAULT_POS_Y
+
+        self.height = 0
         self.make_2darray()
         self.font = pygame.font.Font(r'./data/HOMOARAK.TTF', self.font_size) 
 
@@ -152,6 +155,34 @@ class Game:
                  column.append(0)
             self.container.append(column)
 
+    #gives all possible position 4r current symbol 
+    def get_all_move_pos_4r_cur_sym(self):
+        a = np.array(self.container)
+        a[self.rows-1][1] = 9    
+        print (a)
+        k = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a][self.dummy_index]
+        for i in range(len(k)):
+            s = np.array(k[i])
+            print (s)
+            row, col = s.shape
+            a = np.array(self.container)
+            y = 0
+            for m in reversed(range(row)):
+                y += 1
+                z = 0
+                for n in range(col):
+                    print (m,n, end=' => ')
+                    print (s[m][n])
+                    if s[m][n] == 1:
+                       if a[self.rows-y][z] == 1:
+                          break;
+                       else:
+                          a[self.rows-y][z] = 1    
+                          z += 1 
+                    else:
+                      z += 1 
+            print (a)
+            break
     #to display game array        
     def printCurrentArr(self, arr):
         row = len(arr)
@@ -263,6 +294,7 @@ class Game:
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
         index = random.randint(0,6)
+        self.dummy_index = index
         print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
         self.next_symbol_arr.append(a[index]) 
 
@@ -330,7 +362,6 @@ class Game:
     # Displays GameOver screen
     def gameOver(self):
         self.speed_rate = 0
-        breakpoint()  
 
     # Draws the game rect 
     def drawRectangle(self):
@@ -415,4 +446,6 @@ class Game:
         return 1
 
 game = Game(400, 400)
-game.displayGame()
+game.getRandomShape()
+game.get_all_move_pos_4r_cur_sym()
+#game.displayGame()

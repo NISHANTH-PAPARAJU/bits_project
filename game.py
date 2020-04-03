@@ -165,23 +165,26 @@ class Game:
             s = np.array(k[i])
             print (s)
             row, col = s.shape
-            a = np.array(self.container)
-            y = 0
-            for m in reversed(range(row)):
-                y += 1
-                z = 0
-                for n in range(col):
-                    print (m,n, end=' => ')
-                    print (s[m][n])
-                    if s[m][n] == 1:
-                       if a[self.rows-y][z] == 1:
-                          break;
-                       else:
-                          a[self.rows-y][z] = 1    
+            print ('row %d, col %d' %(row,col))
+            for r in range(11-col):
+                a = np.array(self.container)
+                y = 0
+                for m in reversed(range(row)):
+                    y += 1
+                    print ('r=%d' %r)
+                    z = r
+                    for n in range(col):
+                        print (m,n, end=' => ')
+                        print (s[m][n])
+                        if s[m][n] == 1:
+                           if a[self.rows-y][z] == 1:
+                              break;
+                           else:
+                              a[self.rows-y][z] = 1    
+                              z += 1 
+                        else:
                           z += 1 
-                    else:
-                      z += 1 
-            print (a)
+                print (a[17:])
             break
     #to display game array        
     def printCurrentArr(self, arr):
@@ -271,6 +274,7 @@ class Game:
                    column.append(0)
                self.container.insert(0, column) 
         self.score += j * 10
+
     # load the basic block of tetris
     def loadImage(self):
         self.block = pygame.image.load(r'./data/roundedBlock.png') 

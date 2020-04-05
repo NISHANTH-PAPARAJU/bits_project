@@ -147,7 +147,7 @@ class Game:
         self.make_2darray()
         self.font = pygame.font.Font(r'./data/HOMOARAK.TTF', self.font_size) 
 
-    # make game array
+    #make game array
     def make_2darray(self):
         for j in range(self.rows):
             column = []
@@ -155,37 +155,66 @@ class Game:
                  column.append(0)
             self.container.append(column)
 
+    def get_height(self, a):
+        row, col = a.shape
+        v = np.argmax(a>0)
+        if v:
+            return ( row  -  (v//col))
+        return 1
+
     #gives all possible position 4r current symbol 
     def get_all_move_pos_4r_cur_sym(self):
+        self.current_y = self.rows+4
+        self.addSymbolToGame(self.s_shape_a[0])
         a = np.array(self.container)
-        a[self.rows-1][1] = 9    
         print (a)
-        k = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a][self.dummy_index]
+        #k = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a][self.dummy_index]
+        k=self.L_shape_a
+        error = 0
         for i in range(len(k)):
             s = np.array(k[i])
             print (s)
             row, col = s.shape
-            print ('row %d, col %d' %(row,col))
+            a_h = self.get_height(a)
+            arr_h = row
+            print('a height %d' %a_h)
+            print('arr height %d' %arr_h) 
             for r in range(11-col):
-                a = np.array(self.container)
-                y = 0
-                for m in reversed(range(row)):
-                    y += 1
-                    print ('r=%d' %r)
-                    z = r
-                    for n in range(col):
-                        print (m,n, end=' => ')
-                        print (s[m][n])
-                        if s[m][n] == 1:
-                           if a[self.rows-y][z] == 1:
-                              break;
-                           else:
-                              a[self.rows-y][z] = 1    
-                              z += 1 
-                        else:
-                          z += 1 
-                print (a[17:])
-            break
+               a = np.array(self.container)
+               print (' for r position %d' %r)
+               v =  self.getValidPosition(s, a_h, r, arr_h-1)   
+               print (v)
+               self.copyPos(v-1, r, s, a)
+               print (a)
+
+    def copyPos(self, x, y, arr, a):
+        row = len(arr)
+        col = len(arr[0])
+        for i in reversed(range(row)):
+            for j in range(col):
+                if arr[i][j] == 1:
+                    a[i+x][j+y] = arr[i][j]
+
+    #get valid pos to predication best moves 
+    def getValidPosition(self, arr, y_start, x_start, arr_h):
+       a = np.array(self.container) 
+       row, col = arr.shape
+       y = (self.rows-row) - y_start
+       while y < self.rows:
+           for i in reversed(range(row)):
+               for j in range(col):
+                   if arr[i][j] == 1:
+                       #print( 'i ,j, y %d %d %d' %(i,j,y))
+                       if i + y > self.rows-1:
+                           return (self.rows)-arr_h 
+                       if self.isValidPosition(a, i + y, j+x_start):
+                           return y
+           y += 1
+       return (self.rows)-arr_h
+
+    def isValidPosition(self, a, x,y):
+        return a[x][y] == 1  
+
     #to display game array        
     def printCurrentArr(self, arr):
         row = len(arr)

@@ -2,6 +2,8 @@ import pygame
 import random
 import time
 import numpy as np  
+import datetime
+
 class Game:
 
     # defines
@@ -117,8 +119,10 @@ class Game:
     magic_number = 1
     speed_rate = magic_number
     font_size = 25           
+    savepath = r'./data/' 
+
     # init method 
-    def __init__(self, s_h, s_w):
+    def __init__(self, s_h, s_w, save = False):
         self.s_w = s_w
         self.s_h = s_h
 
@@ -130,6 +134,11 @@ class Game:
         self.loadImage()
         self.s_w = 200
         self.s_h = 300
+        
+        self.save = save
+
+        if save:
+           self.prepareSaveData()
 
         self.b_width = self.block.get_size()[0]
         self.b_height = self.block.get_size()[1]
@@ -146,7 +155,13 @@ class Game:
         self.height = 0
         self.make_2darray()
         self.font = pygame.font.Font(r'./data/HOMOARAK.TTF', self.font_size) 
+        self.getRandomShape()
 
+    def prepareSaveData(self):
+        self.filename = datetime.datetime.now().strftime("%Y-%m-%d-%H-%M-%S")   + '.gamedata'
+        self.state_np_array = []
+        self.score_np_array = []
+       
     #make game array
     def make_2darray(self):
         for j in range(self.rows):
@@ -161,6 +176,25 @@ class Game:
         if v:
             return ( row  -  (v//col))
         return 1
+
+    def trackGameState(self):
+        if self.save:
+            a = np.array(self.container)
+            self.state_np_array.append(a)
+
+    def restartGame(self):
+        if self.save:
+            self.saveGamestate()
+
+        self.make_2darray()
+        self.getRandomShape()
+        self.prepareSaveData()
+        self.score = 0
+
+    def saveGamestate(self): 
+        x = np.array(self.state_np_array)
+        y = np.array(self.score)
+        np.savez(self.savepath+ self.filename, x, y)
 
     #gives all possible position 4r current symbol 
     def get_all_move_pos_4r_cur_sym(self):
@@ -271,6 +305,7 @@ class Game:
         self.current_y = self.DEFAULT_POS_Y
         self.getRandomShape()
         self.speed_rate = self.magic_number
+        self.trackGameState()
         
 
     # draw method to draw the shapes of tetris symbols
@@ -287,7 +322,7 @@ class Game:
                         self.dothings(i, j)               
                         return 1
                     elif r ==2:
-                        self.gameOver() 
+                        self.restartGame()
                         return 1
                     self.screen.blit(self.block, ( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i)))
 
@@ -379,6 +414,7 @@ class Game:
     def handleKeyEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
+                self.saveGamestate()
                 self.done = True
                 return 1
             if event.type == pygame.KEYDOWN:
@@ -395,6 +431,8 @@ class Game:
     # Displays GameOver screen
     def gameOver(self):
         self.speed_rate = 0
+        self.restartGame()
+        speed_rate = magic_number
 
     # Draws the game rect 
     def drawRectangle(self):
@@ -467,7 +505,7 @@ class Game:
             self.drawContainer(self.container)
             self.checkforfill() 
             pygame.display.flip()
- 
+     
     # rotates the symbols in the game
     def rotate(self):
         l = len(self.current_arr)
@@ -478,7 +516,7 @@ class Game:
            self.current_index = 0
         return 1
 
-game = Game(400, 400)
+game = Game(400, 400, True)
 game.getRandomShape()
-game.get_all_move_pos_4r_cur_sym()
-#game.displayGame()
+#game.get_all_move_pos_4r_cur_sym()
+game.displayGame()

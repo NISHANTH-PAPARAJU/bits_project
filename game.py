@@ -3,6 +3,7 @@ import random
 import time
 import numpy as np  
 import datetime
+import sys
 
 class Game:
 
@@ -17,6 +18,7 @@ class Game:
     s_h = 0
     block = None
 
+    display = False
     down_rect = None
     up_rect = None
     right_rect = None 
@@ -27,6 +29,7 @@ class Game:
     drop_interval = 1000
     m_time_drop = 0
 
+    min_max = False
     score = 0
     next_symbol_arr = []
     current_index = 0
@@ -170,6 +173,12 @@ class Game:
                  column.append(0)
             self.container.append(column)
 
+    def get_width(self, a, h):
+        x = []
+        for i in range(self.rows - h, self.rows, 1):
+            x.append(np.max(np.where(a[i] == 1)))
+        return max(x) 
+             
     def get_height(self, a):
         row, col = a.shape
         v = np.argmax(a>0)
@@ -196,30 +205,76 @@ class Game:
         y = np.array(self.score)
         np.savez(self.savepath+ self.filename, x, y)
 
+    def getMaxScore(self, a):
+        penality = 0
+        h = self.get_height(a)
+        w = self.get_width(a, h)
+        print ('width %d' %w)
+        score = 0
+        print (a)
+        for i in range(self.rows - h, self.rows, 1):
+            for j in range(w):
+                if  a[i][j]== 0:
+                    a[i][j] = penality
+                else:
+                    a[i][j] = a[i][j] + (abs(penality)+ 1)
+                penality -= 1
+        #print(a)
+        score = np.sum(a)
+        print (score)
+        return score
+
+    def useMinMax(self):
+        scores = []
+        all_pos, data_pos = self.get_all_move_pos_4r_cur_sym()
+        i = 0
+        for  a in all_pos:
+            scores.append(self.getMaxScore(a))
+            ro, mov = data_pos[i]
+            print ('rotate %d , move %d' %(ro, mov))
+            i += 1
+        print ('scores %s ' %(str(scores)))
+        print ('score %d ' %(max(scores)))
+        index = (scores.index(max(scores)))
+        rotate, move = data_pos[index]
+        print ('rotate %d , move %d' %(rotate, move))
+        if not self.display:
+            return
+        count = 0
+        while(self.current_index != rotate):
+            print ('self.current_index %d ' %(self.current_index))
+            self.rotate()
+            count += 1
+            if count > 6:
+                breakpoint()
+        count = 0
+        while(self.current_x != move+2):
+            self.moveRight()
+            count += 1
+            if count > 6:
+                breakpoint()
+            print ('self.move %d ' %(self.current_x))
+
     #gives all possible position 4r current symbol 
     def get_all_move_pos_4r_cur_sym(self):
-        self.current_y = self.rows+4
-        self.addSymbolToGame(self.s_shape_a[0])
-        a = np.array(self.container)
-        print (a)
-        #k = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a][self.dummy_index]
-        k=self.L_shape_a
-        error = 0
+        data_pos = []
+        all_pos = []
+        k = self.current_arr
+        #k = self.t_shape_a 
+        print ('get pos len %d ' %len(k))
         for i in range(len(k)):
+            a = np.array(self.container)
             s = np.array(k[i])
-            print (s)
             row, col = s.shape
             a_h = self.get_height(a)
             arr_h = row
-            print('a height %d' %a_h)
-            print('arr height %d' %arr_h) 
             for r in range(11-col):
                a = np.array(self.container)
-               print (' for r position %d' %r)
                v =  self.getValidPosition(s, a_h, r, arr_h-1)   
-               print (v)
                self.copyPos(v-1, r, s, a)
-               print (a)
+               all_pos.append(a)
+               data_pos.append((i,r))
+        return all_pos, data_pos
 
     def copyPos(self, x, y, arr, a):
         row = len(arr)
@@ -306,7 +361,7 @@ class Game:
         self.getRandomShape()
         self.speed_rate = self.magic_number
         self.trackGameState()
-        
+        self.min_max = False
 
     # draw method to draw the shapes of tetris symbols
     def drawContainer(self, arr):
@@ -362,7 +417,6 @@ class Game:
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
         index = random.randint(0,6)
-        self.dummy_index = index
         print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
         self.next_symbol_arr.append(a[index]) 
 
@@ -398,7 +452,8 @@ class Game:
 
     # moves the shape one step right
     def moveRight(self):
-        if self.current_x < self.rows:
+        w = np.array(self.current_arr[self.current_index]).shape[1]
+        if self.current_x + (w-2) < self.cols:
             self.current_x += 1
             return 1
         return 0
@@ -414,7 +469,8 @@ class Game:
     def handleKeyEvent(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                self.saveGamestate()
+                if self.save:
+                    self.saveGamestate()
                 self.done = True
                 return 1
             if event.type == pygame.KEYDOWN:
@@ -469,8 +525,8 @@ class Game:
 
      # main game loop
     def displayGame(self):
+        self.display = True
         self.getRandomShape()
-
         self.down_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y + self.rows)  * self.b_height, self.b_width*self.cols, self.b_height)) 
         self.up_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height, self.b_width*self.cols, self.b_height)) 
         self.right_rect = pygame.Rect(((self.DEFAULT_POS_X+22)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height-2, self.b_width*12, self.b_height*self.rows+4))
@@ -484,11 +540,15 @@ class Game:
             if pygame.time.get_ticks() > self.m_time_drop:
                 self.m_time_drop   = pygame.time.get_ticks() + self.drop_interval 
                 self.speed_rate += self.speed_rate
-           # pygame.draw.rect(self.screen, (255,255, 0), self.down_rect)
+            #pygame.draw.rect(self.screen, (255,255, 0), self.right_rect)
             if  self.speed_rate > 1:
                 self.current_y += 1
                 self.speed_rate = self.magic_number
             
+            if not self.min_max and self.current_y == self.rows/2:
+                self.min_max = True
+                self.useMinMax() 
+
             self.handleKeyEvent()                         
             self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+5)*self.b_height, (2 )  * self.b_height))
             self.displayLines()   
@@ -516,7 +576,7 @@ class Game:
            self.current_index = 0
         return 1
 
-game = Game(400, 400, True)
-game.getRandomShape()
-#game.get_all_move_pos_4r_cur_sym()
+game = Game(400, 400)
+#game.getRandomShape()
+#game.useMinMax()
 game.displayGame()

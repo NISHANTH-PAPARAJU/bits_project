@@ -74,11 +74,7 @@ class Game:
                  [ [ 0, 1],
                    [ 1, 1],
                    [ 1, 0],
-                 ],
-                 [ [ 1, 1, 0],
-                   [ 0, 1, 1],
-                 ]
-               ]
+                 ]]
     
     o_shape_a = [[ [ 2, 2],
                    [ 2, 2],
@@ -213,6 +209,7 @@ class Game:
         self.make_2darray()
         self.getRandomShape()
         self.prepareSaveData()
+        self.line  = 0
         self.score = 0
 
     def saveGamestate(self): 
@@ -452,7 +449,7 @@ class Game:
     def getRandomShape(self):
         a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
         index = random.randint(0,6)
-        print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
+        #print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
         self.next_symbol_arr.append(a[index]) 
 
         if self.rand_index == -1:
@@ -463,12 +460,12 @@ class Game:
 
         if len(self.next_symbol_arr)==1:
             index = random.randint(0,6)
-            print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
+            #print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
             self.next_symbol_arr.append(a[index]) 
             self.rand_index = random.randint(0, len(a[index])-1)        
 
         self.current_arr = self.next_symbol_arr.pop(0) 
-        print (self.current_index)
+        #print (self.current_index)
 
     # Prints the game array
     def printContainer(self):
@@ -488,7 +485,7 @@ class Game:
     # moves the shape one step right
     def moveRight(self):
         w = np.array(self.current_arr[self.current_index]).shape[1]
-        if self.current_x + (w-2) < self.cols:
+        if self.current_x + (w-1) < self.cols:
             self.current_x += 1
             return 1
         return 0
@@ -602,7 +599,7 @@ class Game:
             text_o_score = self.font.render('{:05d}'.format(self.score), True, (255, 255, 255)) 
             self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+19 )  * self.b_height))
             self.screen.blit(text_line_tittle, ((self.DEFAULT_POS_X+13)*self.b_height, (self.DEFAULT_POS_Y+10 )  * self.b_height))
-            text_line = self.font.render('{:05d}'.format(self.score), True, (255, 255, 255)) 
+            text_line = self.font.render('{:05d}'.format(self.line), True, (255, 255, 255)) 
             self.screen.blit(text_line, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+13 )  * self.b_height))
            # self.drawSecondBox()
             self.drawFourthBox()

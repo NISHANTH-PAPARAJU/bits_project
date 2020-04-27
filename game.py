@@ -201,6 +201,8 @@ class Game:
             #print (z)
             action = (self.current_x) + (10*self.current_index)
             #print ('action: %d' %action)
+            z[z>0] = 1
+            #print (z)
             self.action_np_array.append(action)
             self.state_np_array.append(z)
 
@@ -429,6 +431,8 @@ class Game:
         self.sky_blue_block = pygame.transform.scale(self.sky_blue_block, (15, 15))
         self.violet_block = pygame.transform.scale(self.violet_block, (15, 15))
         self.image_arr  = [self.green_block,self.yellow_block,self.violet_block, self.orange_block,self.blue_block,self.red_block,self.sky_blue_block]
+        self.empty_block = pygame.image.load(r'./data/empty.png') 
+        self.empty_block = pygame.transform.scale(self.empty_block, (15, 15))
         self.rect = self.green_block.get_rect()
 
     # temp method to draw lines
@@ -441,7 +445,7 @@ class Game:
          col = len(arr[0])
          for i in range(row):
              for j in range(col):
-                 if self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] != 1: 
+                 if self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] == 0: 
                      self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] = arr[i][j]
 
     # Generates a new symbol after every touch
@@ -526,6 +530,11 @@ class Game:
         temp_rect = pygame.Rect((self.DEFAULT_POS_X*self.b_height-2, (self.DEFAULT_POS_Y )  * self.b_height-2   , self.b_width*self.cols+4, self.b_height*self.rows+4)) 
         pygame.draw.rect(self.screen, (255,255, 0), temp_rect, 2)
 
+    def drawEmptyBlocks(self):
+        for i in range(self.rows):
+            for j in range(self.cols):
+                    self.screen.blit(self.empty_block, ( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i)))
+
     # Displays a grid in entire game rect for understanding
     def displayLines(self):
         for i in range(self.rows+1):
@@ -586,7 +595,8 @@ class Game:
 
             self.handleKeyEvent()                         
             self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+5)*self.b_height, (2 )  * self.b_height))
-            self.displayLines()   
+            #self.displayLines()   
+            self.drawEmptyBlocks()
             self.screen.blit(text_next, ((self.DEFAULT_POS_X+13)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height))
             self.screen.blit(text_score, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+16 )  * self.b_height))
             text_o_score = self.font.render('{:05d}'.format(self.score), True, (255, 255, 255)) 
@@ -617,7 +627,7 @@ class Game:
     def enableMinMax(self):
         self.use_min_max = True
 
-game = Game(450, 352, True)
+game = Game(400, 302, True)
 #game.getRandomShape()
 #game.useMinMax()
 game.displayGame()

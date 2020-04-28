@@ -11,12 +11,18 @@ class Game:
     BACK_GROUND_COLOR = 0,0,0
     GREEN = (0, 200, 0 )
     DEFAULT_POS_X = 13
-
+    some_index = 0
+    animate = False
+    delete_index = -1
+    animate_row = None
     done = False
     screen = None
     s_w = 0
     s_h = 0
     block = None
+
+    anim_x = 0
+    anim_y = 0
 
     display = False
     down_rect = None
@@ -393,20 +399,47 @@ class Game:
                         return 1
                     self.screen.blit(self.image_arr[arr[i][j]-1], ( self.b_width *(self.DEFAULT_POS_X+j) , self.b_height *(self.DEFAULT_POS_Y+i)))
 
+    #def animate(self, index):
+    def gettime(self):
+        return  int(round(time.time() * 1000))
+
     #check if blocks are full
     def checkforfill(self):
         j = 0
+        index = 0
         for row in self.container:
             if 0 not in row:
-               self.container.remove(row)
-               j += 1
-               self.line += 1
-               column = []
-               for i in range(self.cols):
-                   column.append(0)
-               self.container.insert(0, column) 
+                self.animate_row = row
+                self.animate = True
+                self.some_index = len(row)
+                self.delete_index = index
+                self.anim_x = (self.some_index-1)//2 
+                self.anim_y = ((self.some_index-1)//2)+1 
+                break
+            index += 1
+    '''
+    #check if blocks are full
+    def checkforfill(self):
+        j = 0
+        index = 0
+        for row in self.container:
+            if 0 not in row:
+                for i in range(len(row)):
+                    row[i]=8 
+                    t = self.gettime()
+                    while (self.gettime()-t) < 200:
+                        self.screen.fill(self.BACK_GROUND_COLOR)
+                        self.drawContainer(self.container)
+                del self.container[index]
+                j += 1
+                self.line += 1
+                column = []
+                for i in range(self.cols):
+                    column.append(0)
+                self.container.insert(0, column) 
+            index += 1
         self.score += j * 10
-
+    '''
     # load the basic block of tetris
     def loadImage(self):
         self.green_block = pygame.image.load(r'./data/green.png') 
@@ -417,6 +450,8 @@ class Game:
         self.sky_blue_block = pygame.image.load(r'./data/sky_blue.png') 
         self.violet_block = pygame.image.load(r'./data/violet.png') 
 
+        self.block = pygame.image.load(r'./data/roundedBlock.png') 
+        self.block = pygame.transform.scale(self.block, (15, 15))
         self.block1 = pygame.image.load(r'./data/roundedBlock.png') 
         self.block1 = pygame.transform.scale(self.block1, (10, 10))
 
@@ -427,7 +462,7 @@ class Game:
         self.red_block = pygame.transform.scale(self.red_block, (15, 15))
         self.sky_blue_block = pygame.transform.scale(self.sky_blue_block, (15, 15))
         self.violet_block = pygame.transform.scale(self.violet_block, (15, 15))
-        self.image_arr  = [self.green_block,self.yellow_block,self.violet_block, self.orange_block,self.blue_block,self.red_block,self.sky_blue_block]
+        self.image_arr  = [self.green_block,self.yellow_block,self.violet_block, self.orange_block,self.blue_block,self.red_block,self.sky_blue_block,self.block]
         self.empty_block = pygame.image.load(r'./data/empty.png') 
         self.empty_block = pygame.transform.scale(self.empty_block, (15, 15))
         self.rect = self.green_block.get_rect()
@@ -581,6 +616,27 @@ class Game:
             if pygame.time.get_ticks() > self.m_time_drop:
                 self.m_time_drop   = pygame.time.get_ticks() + self.drop_interval 
                 self.speed_rate += self.speed_rate
+
+            if self.animate:
+                if self.anim_x > -1:
+                    self.animate_row[self.anim_x] = 8 
+                    self.animate_row[self.anim_y] = 8 
+                t = self.gettime()
+                while self.gettime()-t < 10:
+                    pass
+                self.anim_x -=1
+                self.anim_y +=1
+                self.some_index-=2
+                if self.some_index == -6:
+                    drop_interval = 1000
+                    self.animate = False
+                    del self.container[self.delete_index]
+                    self.line += 1
+                    self.score += 10
+                    column = []
+                    for i in range(self.cols):
+                        column.append(0)
+                    self.container.insert(0, column) 
             #pygame.draw.rect(self.screen, (255,255, 0), self.right_rect)
             if  self.speed_rate > 1:
                 self.current_y += 1
@@ -608,7 +664,8 @@ class Game:
             self.drawNextSymbol(self.next_symbol_arr[0][self.rand_index])
             self.drawShape(self.current_arr[self.current_index], self.current_x, self.current_y )
             self.drawContainer(self.container)
-            self.checkforfill() 
+            if not self.animate:
+                self.checkforfill() 
             pygame.display.flip()
      
     # rotates the symbols in the game

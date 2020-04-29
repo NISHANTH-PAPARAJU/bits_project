@@ -124,7 +124,7 @@ class Game:
     magic_number = 1
     speed_rate = magic_number
     font_size = 22           
-    tittle_font_size = 25
+    tittle_font_size = 30
     savepath = r'./save_game/' 
     line=0
 
@@ -147,7 +147,7 @@ class Game:
         pygame.mixer.music.play(-1)
       
         self.drop_sfx = pygame.mixer.Sound(r'./data/drop.wav')
-        self.clear_sfx = pygame.mixer.Sound('r./data/clear.wav')
+        self.clear_sfx = pygame.mixer.Sound(r'./data/clear.wav')
 
         if save:
            self.prepareSaveData()
@@ -158,8 +158,8 @@ class Game:
         self.cols = 10 
         self.rows = 20
 
-        self.DEFAULT_POS_X = 1#self.cols//4
-        self.DEFAULT_POS_Y = 6#self.rows//4+7
+        self.DEFAULT_POS_X = 1
+        self.DEFAULT_POS_Y = 6
 
         self.current_x = self.DEFAULT_POS_X
         self.current_y = self.DEFAULT_POS_Y
@@ -167,7 +167,8 @@ class Game:
         self.height = 0
         self.make_2darray()
         self.font = pygame.font.Font(r'./data/hemi_head_bd_it.TTF', self.font_size) 
-        self.tittle_font = pygame.font.Font(r'./data/HOMOARAK.TTF', self.tittle_font_size) 
+        self.tittle_font = pygame.font.Font(r'./data/hemi_head_bd_it.TTF', self.tittle_font_size) 
+        self.gen = self.randomizer()
         self.getRandomShape()
 
     def prepareSaveData(self):
@@ -470,6 +471,7 @@ class Game:
         self.violet_block = pygame.transform.scale(self.violet_block, (15, 15))
         self.image_arr  = [self.green_block,self.yellow_block,self.violet_block, self.orange_block,self.blue_block,self.red_block,self.sky_blue_block,self.block]
         self.empty_block = pygame.image.load(r'./data/empty.png') 
+        self.empty_block2 = pygame.transform.scale(self.empty_block, (15, 15))
         self.empty_block = pygame.transform.scale(self.empty_block, (15, 15))
         self.rect = self.green_block.get_rect()
 
@@ -486,24 +488,58 @@ class Game:
                  if self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] == 0: 
                      self.container[i+(self.current_y-self.DEFAULT_POS_Y)][j+self.current_x-self.DEFAULT_POS_X] = arr[i][j]
 
+    def randomizer(self):
+        a = [self.L_shape_a, self.j_shape_a, self.l_shape_a, self.o_shape_a, self.s_shape_a, self.t_shape_a, self.z_shape_a]  
+        order = []
+
+        #Create 35 pool.
+        pool = a+a+a+a+a
+
+        #First piece special conditions
+        firstPiece = [self.L_shape_a, self.j_shape_a, self.l_shape_a, self.o_shape_a][random.randint(0,3)];
+        yield firstPiece;
+
+        history = [self.s_shape_a, self.t_shape_a, self.z_shape_a, firstPiece];
+
+        while True: 
+            # Roll For piece
+            for roll in range(6):
+               i = random.randint(0,34)
+               piece = pool[i];
+               if piece not in history or  roll == 5: 
+                   break;
+               if len(order):
+                   pool[i] = order[0];
+        
+            # Update piece order
+            if piece in order: 
+                order.remove(piece)
+
+            order.append(piece)
+            pool[i] = order[0]
+
+            #Update history
+            del history[0]
+            history.append(piece)
+            yield piece
+
     # Generates a new symbol after every touch
     def getRandomShape(self):
-        a = [self.l_shape_a, self.t_shape_a, self.L_shape_a, self.o_shape_a, self.z_shape_a, self.s_shape_a, self.j_shape_a]  
-        index = random.randint(0,6)
         #print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
-        self.next_symbol_arr.append(a[index]) 
+        a = next(self.gen)
+        self.next_symbol_arr.append(a) 
 
         if self.rand_index == -1:
-            self.current_index = random.randint(0, len(a[index])-1)        
+            self.current_index = random.randint(0, len(a)-1)        
         else:
             self.current_index = self.rand_index 
-            self.rand_index = random.randint(0, len(a[index])-1)        
+            self.rand_index = random.randint(0, len(a)-1)        
 
         if len(self.next_symbol_arr)==1:
-            index = random.randint(0,6)
+            b = next(self.gen)
             #print ('current shape '+ {0:'l_shap', 1:'t_shape', 2:'bar_shape', 3:'o_shape', 4:'z_shaped', 5:'s_shape', 6:'j_shape'}[index])
-            self.next_symbol_arr.append(a[index]) 
-            self.rand_index = random.randint(0, len(a[index])-1)        
+            self.next_symbol_arr.append(b) 
+            self.rand_index = random.randint(0, len(b)-1)        
 
         self.current_arr = self.next_symbol_arr.pop(0) 
         #print (self.current_index)
@@ -589,12 +625,11 @@ class Game:
         temp_rect = pygame.Rect(((self.DEFAULT_POS_X+24)*self.b_height, (self.DEFAULT_POS_Y+5)  * self.b_height, self.b_width*7, self.b_height*8))
         pygame.draw.rect(self.screen, (255, 0, 255), temp_rect, 2)  
 
-    def drawFourthBox(self,b_width=10, b_height=10):
+    def drawFourthBox(self):
         for i in range(5):
-                self.drawLine((self.DEFAULT_POS_X+22)*b_height, (self.DEFAULT_POS_Y+ 4 + i)  * b_height,  (self.DEFAULT_POS_X + 22) * b_height+((b_width)*6),  (self.DEFAULT_POS_Y+ 4 + i) * (b_height))
-        for i in range(5):
-                self.drawLine((self.DEFAULT_POS_X+i+22)*b_height, (self.DEFAULT_POS_Y+ 3 )  * b_height,  (self.DEFAULT_POS_X + i + 22) * b_height,  (self.DEFAULT_POS_Y + 3 )*(b_height) + (b_height *6) )
-        temp_rect = pygame.Rect(((self.DEFAULT_POS_X+22)*b_height, (self.DEFAULT_POS_Y+3)  * b_height, b_width*6, b_height*6))
+            for j in range(5):
+                    self.screen.blit(self.empty_block2, ( self.b_width *(self.DEFAULT_POS_X+12+j) , self.b_height *(self.DEFAULT_POS_Y+3+i)))
+        temp_rect = pygame.Rect(((self.DEFAULT_POS_X+11.9)*self.b_width, (self.DEFAULT_POS_Y+2.9)  * self.b_height, 5*self.b_width+3, 5*self.b_height+3))
         pygame.draw.rect(self.screen, (255, 0, 255), temp_rect, 2)  
 
     def drawNextSymbol(self, arr):
@@ -603,7 +638,7 @@ class Game:
         for i in range(row):
             for j in range(col):
                 if arr[i][j] > 0:
-                    self.screen.blit(self.image_arr[arr[i][j]-1], ((self.DEFAULT_POS_X+16+j)*self.b_height-5, (self.DEFAULT_POS_Y+3+i )  * self.b_height-5))
+                    self.screen.blit(self.image_arr[arr[i][j]-1], ((self.DEFAULT_POS_X+13+j)*self.b_height, (self.DEFAULT_POS_Y+4+i )  * self.b_height))
 
      # main game loop
     def displayGame(self):
@@ -615,7 +650,7 @@ class Game:
         text_next = self.font.render('NEXT', True, (255, 0, 0)) 
         text_line_tittle = self.font.render('LINE', True, (255, 0, 0)) 
         self.tittle_font.set_bold(True)
-        text_tetris = self.tittle_font.render('TETRIS', True, (0, 0, 255)) 
+        text_tetris = self.tittle_font.render('TETRIS', True, (255, 255, 0)) 
         while not self.done:
             self.screen.fill(self.BACK_GROUND_COLOR)
 
@@ -654,14 +689,14 @@ class Game:
                 self.useMinMax() 
 
             self.handleKeyEvent()                         
-            self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+5)*self.b_height, (2 )  * self.b_height))
+            self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+6)*self.b_height, (1 )  * self.b_height))
             #self.displayLines()   
             self.drawEmptyBlocks()
-            self.screen.blit(text_next, ((self.DEFAULT_POS_X+13)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height))
+            self.screen.blit(text_next, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y )  * self.b_height))
             self.screen.blit(text_score, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+16 )  * self.b_height))
             text_o_score = self.font.render('{:05d}'.format(self.score), True, (255, 255, 255)) 
-            self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+19 )  * self.b_height))
-            self.screen.blit(text_line_tittle, ((self.DEFAULT_POS_X+13)*self.b_height, (self.DEFAULT_POS_Y+10 )  * self.b_height))
+            self.screen.blit(text_o_score, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+18.5 )  * self.b_height))
+            self.screen.blit(text_line_tittle, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+10 )  * self.b_height))
             text_line = self.font.render('{:05d}'.format(self.line), True, (255, 255, 255)) 
             self.screen.blit(text_line, ((self.DEFAULT_POS_X+12)*self.b_height, (self.DEFAULT_POS_Y+13 )  * self.b_height))
            # self.drawSecondBox()

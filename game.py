@@ -143,6 +143,11 @@ class Game:
         self.s_h = 350
         
         self.save = save
+        music = pygame.mixer.music.load(r'./data/bg.mp3')
+        pygame.mixer.music.play(-1)
+      
+        self.drop_sfx = pygame.mixer.Sound(r'./data/drop.wav')
+        self.clear_sfx = pygame.mixer.Sound('r./data/clear.wav')
 
         if save:
            self.prepareSaveData()
@@ -371,6 +376,7 @@ class Game:
 
     # once any symbol is touched, the routine to swap a new symbol and reset positions
     def dothings(self, i, j):
+        self.drop_sfx.play()
         self.speed_rate = 0
         self.moveUp()
         self.trackGameState()
@@ -628,6 +634,7 @@ class Game:
                 self.anim_y +=1
                 self.some_index-=2
                 if self.some_index == -6:
+                    self.clear_sfx.play()
                     drop_interval = 1000
                     self.animate = False
                     del self.container[self.delete_index]
@@ -681,7 +688,7 @@ class Game:
     def enableMinMax(self):
         self.use_min_max = True
 
-game = Game(400, 302, True)
+game = Game(400, 302)
 #game.getRandomShape()
 #game.useMinMax()
 game.displayGame()

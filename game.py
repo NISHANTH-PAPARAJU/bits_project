@@ -4,6 +4,7 @@ import time
 import numpy as np  
 import datetime
 import sys
+import os
 
 class Game:
 
@@ -221,9 +222,8 @@ class Game:
 
     def restartGame(self):
         if self.save:
-            if self.line > 20:
-                self.saveGamestate()
-                self.prepareSaveData()
+            self.saveGamestate()
+            self.prepareSaveData()
 
         a = np.zeros((20,10))
         self.container = a.tolist()
@@ -232,9 +232,12 @@ class Game:
         self.score = 0
 
     def saveGamestate(self): 
-        x = np.array(self.state_np_array)
-        y = np.array(self.action_np_array)
-        np.savez(self.savepath+ self.filename, x, y)
+        if not os.path.exists(self.savepath):
+            os.makedirs(self.savepath)
+        if self.line > 10:
+            x = np.array(self.state_np_array)
+            y = np.array(self.action_np_array)
+            np.savez(self.savepath+ self.filename, x, y)
 
     def getMaxScore(self, a):
         penality = 0
@@ -745,7 +748,7 @@ class Game:
     def enableMinMax(self):
         self.use_min_max = True
 
-game = Game(400, 302)
+game = Game(400, 302,True)
 #game.getRandomShape()
 #game.useMinMax()
 game.displayGame()

@@ -24,6 +24,11 @@ class Game:
     anim_x = 0
     anim_y = 0
 
+    keyPressed = False
+    keyReleased = True
+    next_key_time = 0
+    repeat_time = 21
+
     display = False
     down_rect = None
     up_rect = None
@@ -216,11 +221,13 @@ class Game:
 
     def restartGame(self):
         if self.save:
-            self.saveGamestate()
+            if self.line > 20:
+                self.saveGamestate()
+                self.prepareSaveData()
 
-        self.make_2darray()
+        a = np.zeros((20,10))
+        self.container = a.tolist()
         self.getRandomShape()
-        self.prepareSaveData()
         self.line  = 0
         self.score = 0
 
@@ -386,6 +393,8 @@ class Game:
         self.current_y = self.DEFAULT_POS_Y
         self.getRandomShape()
         self.speed_rate = self.magic_number
+        if self.keyPressed:
+            self.keyReleased = True
         self.use_min_max = False
 
     # draw method to draw the shapes of tetris symbols
@@ -583,6 +592,7 @@ class Game:
                 self.done = True
                 return 1
             if event.type == pygame.KEYDOWN:
+                self.keyPressed = True
                 if event.key == pygame.K_UP:
                    return  self.rotate()
                 if event.key == pygame.K_LEFT:
@@ -591,6 +601,18 @@ class Game:
                    return self.moveRight()
                 if event.key == pygame.K_DOWN:
                     self.moveDown()
+            if event.type == pygame.KEYUP:
+                self.keyPressed = False
+                self.keyReleased = False
+
+        if self.keyReleased:
+            return 0
+
+        keys = pygame.key.get_pressed()
+
+        if keys[pygame.K_DOWN] and pygame.time.get_ticks() > self.next_key_time: 
+            self.next_key_time = pygame.time.get_ticks() + self.repeat_time 
+            self.moveDown()
         return 0
 
     # Displays GameOver screen

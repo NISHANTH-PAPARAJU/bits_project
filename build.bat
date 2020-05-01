@@ -1,0 +1,1 @@
+pyinstaller --add-data="./data/*;./data" game.py

@@ -5,6 +5,8 @@ import numpy as np
 import datetime
 import sys
 import os
+import tensorflow.keras as tf
+from tensorflow.keras.models import load_model
 
 class Game:
 
@@ -24,6 +26,15 @@ class Game:
 
     anim_x = 0
     anim_y = 0
+    usemodel = False
+
+    adjust = False
+
+    rot = 0
+    movL = 0 
+    doAction = False
+
+    model = None
 
     keyPressed = False
     keyReleased = True
@@ -62,11 +73,7 @@ class Game:
                  ],
                 ]
     
-    l_shape_a = [[[ 4, 0],
-                  [ 4, 0],
-                  [ 4, 4],
-                  ],
-
+    l_shape_a = [
                  [[ 4, 4, 4],
                   [ 4, 0, 0]],
 
@@ -78,6 +85,11 @@ class Game:
                  [[ 0, 0, 4],
                   [ 4, 4, 4]],
 
+                  [[ 4, 0],
+                  [ 4, 0],
+                  [ 4, 4],
+                  ],
+
                 ]
 
     z_shape_a = [[ [ 1, 1, 0],
@@ -86,11 +98,28 @@ class Game:
                  [ [ 0, 1],
                    [ 1, 1],
                    [ 1, 0],
-                 ]]
-    
-    o_shape_a = [[ [ 2, 2],
-                   [ 2, 2],
+                 ],
+                 [ [ 1, 1, 0],
+                   [ 0, 1, 1],
+                 ],
+                 [ [ 0, 1],
+                   [ 1, 1],
+                   [ 1, 0],
                  ]
+                 ]
+    
+    o_shape_a = [ [ [ 2, 2],
+                    [ 2, 2],
+                  ],
+                  [ [ 2, 2],
+                    [ 2, 2],
+                  ],
+                  [ [ 2, 2],
+                    [ 2, 2],
+                  ],
+                  [ [ 2, 2],
+                    [ 2, 2],
+                  ]
                 ]
 
     s_shape_a = [[ [ 0, 6, 6],
@@ -99,10 +128,21 @@ class Game:
                  [ [ 6, 0],
                    [ 6, 6],
                    [ 0, 6],
+                 ],
+                 [ [ 0, 6, 6],
+                   [ 6, 6, 0],
+                 ],
+                 [ [ 6, 0],
+                   [ 6, 6],
+                   [ 0, 6],
                  ]
                 ]
 
-    j_shape_a = [[ [ 0, 5],
+
+    j_shape_a = [[ [5, 5, 5],
+                   [0, 0, 5],
+                 ],
+                 [ [ 0, 5],
                    [ 0, 5],
                    [ 5, 5],
                  ],
@@ -112,20 +152,28 @@ class Game:
                  [ [5, 5],
                    [5, 0],
                    [5, 0]
-                 ],
-                 [ [5, 5, 5],
-                   [0, 0, 5],
-                 ],
-                ]
-
-    L_shape_a = [[ [ 7],
-                   [ 7],
-                   [ 7],
-                   [ 7],
-                 ],
-                 [ [7,7,7,7]
                  ]
                 ]
+
+    L_shape_a = [[ 
+                   [7,7,7,7]
+                 ],
+                 [ [ 7],
+                   [ 7],
+                   [ 7],
+                   [ 7],
+                 ],
+                  [ [7,7,7,7]
+                  ],
+                  [ [ 7],
+                   [ 7],
+                   [ 7],
+                   [ 7],
+                  ]      
+                 ]
+
+    all_arr = [L_shape_a, j_shape_a, l_shape_a, o_shape_a, s_shape_a, t_shape_a, z_shape_a]  
+    copy_lo = [[0,0], [5,0], [10,0], [15,0], [0,17], [5,17], [10,17]]
 
     magic_number = 1
     speed_rate = magic_number
@@ -203,20 +251,35 @@ class Game:
             return ( row  -  (v//col))
         return 1
 
+    def findArray(self):
+        i = 0
+        for arr in self.all_arr:
+            if self.current_arr[self.current_index] in arr:
+                break
+            i += 1 
+        return i    
+
+    def getState(self):
+        z = np.zeros((20,20), dtype=np.int)
+        a = np.array(self.container)
+        h = np.array(self.current_arr[0])
+        index = self.findArray()
+        x,y = self.copy_lo[index]   
+        z[x:x+h.shape[0], y:y+h.shape[1]] = h
+        z[:a.shape[0], 5:5+a.shape[1]] = a
+        z[z>0] = 1
+        #print (z)
+        return z
+
     def trackGameState(self):
         if self.save:
-            z = np.zeros((20,20), dtype=np.int)
-            a = np.array(self.container)
-            h = np.array(self.current_arr[self.current_index])
-            z[:h.shape[0], :h.shape[1]] = h
-            z[:a.shape[0], 5:5+a.shape[1]] = a
             #print ('x:%d' %self.current_x) 
             #print ('index:%d' %self.current_index)
             #print (z)
+            z = self.getState()
             action = (self.current_x) + (10*self.current_index)
             #print ('action: %d' %action)
             z[z>0] = 1
-            #print (z)
             self.action_np_array.append(action)
             self.state_np_array.append(z)
 
@@ -388,6 +451,7 @@ class Game:
     # once any symbol is touched, the routine to swap a new symbol and reset positions
     def dothings(self, i, j):
         self.drop_sfx.play()
+        self.drop_interval = 1000
         self.speed_rate = 0
         self.moveUp()
         self.trackGameState()
@@ -398,6 +462,9 @@ class Game:
         self.speed_rate = self.magic_number
         if self.keyPressed:
             self.keyReleased = True
+        if self.model:
+           self.usemodel = True
+           self.adjust = False
         self.use_min_max = False
 
     # draw method to draw the shapes of tetris symbols
@@ -638,7 +705,6 @@ class Game:
     def displayLines(self):
         for i in range(self.rows+1):
                 self.drawLine(self.DEFAULT_POS_X*self.b_height, (self.DEFAULT_POS_Y + i)  * self.b_height,  (self.DEFAULT_POS_X * self.b_width)+(self.b_height * self.cols),  (self.DEFAULT_POS_Y + i) * self.b_height)
-
         for i in range(self.cols+1):
                 self.drawLine((self.DEFAULT_POS_X + i )* self.b_height, self.DEFAULT_POS_Y  * self.b_width, (self.DEFAULT_POS_X + i) * self.b_height,(self.DEFAULT_POS_Y  * self.b_width) +(self.b_width * self.rows))
 
@@ -709,6 +775,49 @@ class Game:
                 self.current_y += 1
                 self.speed_rate = self.magic_number
             
+            if self.usemodel and not self.doAction and not self.animate:
+                z = self.getState()
+                action = self.predict(z)
+                print ('action :%d' %action)
+                self.rot = action//11
+                '''
+                if self.current_arr[self.current_index] in self.L_shape_a or self.current_arr[self.current_index] in self.o_shape_a:
+                   self.movL = (action%11)-1
+                else:
+                   self.movL = (action%11)-2
+                '''
+                self.movL = (action%11)
+                print ('self.movL %d' %self.movL) 
+                print ('self.rot %d'  %self.rot) 
+                self.doAction = True
+                self.usemodel = False
+
+            if self.doAction:
+               if self.rot != self.current_index:
+                       self.rotate()
+               if self.rot ==  self.current_index:
+                    if not self.adjust:
+                         a = np.array(self.current_arr[self.current_index])
+                         x,y = a.shape
+                         print (x,y)
+                         if  x == 4:
+                             pass
+                         elif x < y:
+                             self.movL -= 2
+                         else:
+                             self.movL -= 1
+                         #print ('acutal move ' + str(self.movL))
+                         self.adjust = True
+                    if  self.movL !=  -1:
+                         self.movL -=1
+                         if self.movL != -1: 
+                            self.moveRight() 
+
+
+               if self.rot == self.current_index  and self.movL == -1:
+                    self.drop_interval = 10
+                    self.doAction = False
+
             if self.use_min_max and self.current_y == self.rows/2:
                 self.use_min_max = False
                 self.useMinMax() 
@@ -745,10 +854,14 @@ class Game:
            self.current_index = 0
         return 1
     
+    def predict(self, state):
+        output = self.model.predict(state.reshape([1,20,20,1]))
+        return np.argmax(output[0])
+
+    def useModel(self):
+        self.model = load_model('gold.h5')
+        self.usemodel = True
+
     def enableMinMax(self):
         self.use_min_max = True
 
-game = Game(400, 302,True)
-#game.getRandomShape()
-#game.useMinMax()
-game.displayGame()

@@ -6,7 +6,7 @@ class Model:
     def __init__(self):
         self. model = tf.Sequential()
         self.model.add(tf.layers.Conv2D(
-                input_shape=[1, 20,20],
+                input_shape=[20,20,1],
                 filters=32,
                 kernel_size=5,
                 strides=5,

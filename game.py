@@ -24,11 +24,15 @@ class Game:
     s_h = 0
     block = None
 
+    pause = False
+    ind = 0
+
     anim_x = 0
     anim_y = 0
     usemodel = False
 
     adjust = False
+   
 
     rot = 0
     movL = 0 
@@ -57,6 +61,7 @@ class Game:
     next_symbol_arr = []
     current_index = 0
     rand_index = -1  
+
     t_shape_a = [[ [3, 3, 3],
                    [0, 3, 0],
                  ],
@@ -174,6 +179,7 @@ class Game:
 
     all_arr = [L_shape_a, j_shape_a, l_shape_a, o_shape_a, s_shape_a, t_shape_a, z_shape_a]  
     copy_lo = [[0,0], [5,0], [10,0], [15,0], [0,17], [5,17], [10,17]]
+    adjust_lo = [[2,0,2,0], [2,2,2,1], [2,2,2,1], [1,1,1,1], [2,1,2,1], [2,2,2,1], [2,1,2,1]]
 
     magic_number = 1
     speed_rate = magic_number
@@ -263,8 +269,8 @@ class Game:
         z = np.zeros((20,20), dtype=np.int)
         a = np.array(self.container)
         h = np.array(self.current_arr[0])
-        index = self.findArray()
-        x,y = self.copy_lo[index]   
+        self.ind = self.findArray()
+        x,y = self.copy_lo[self.ind]   
         z[x:x+h.shape[0], y:y+h.shape[1]] = h
         z[:a.shape[0], 5:5+a.shape[1]] = a
         z[z>0] = 1
@@ -671,6 +677,8 @@ class Game:
                    return self.moveRight()
                 if event.key == pygame.K_DOWN:
                     self.moveDown()
+                if event.key == pygame.K_p:
+                    self.pause = not self.pause
             if event.type == pygame.KEYUP:
                 self.keyPressed = False
                 self.keyReleased = False
@@ -745,9 +753,14 @@ class Game:
         while not self.done:
             self.screen.fill(self.BACK_GROUND_COLOR)
 
+            self.handleKeyEvent()                         
+            if self.pause:
+                continue
+
             if pygame.time.get_ticks() > self.m_time_drop:
                 self.m_time_drop   = pygame.time.get_ticks() + self.drop_interval 
                 self.speed_rate += self.speed_rate
+
 
             if self.animate:
                 if self.anim_x > -1:
@@ -778,7 +791,6 @@ class Game:
             if self.usemodel and not self.doAction and not self.animate:
                 z = self.getState()
                 action = self.predict(z)
-                print ('action :%d' %action)
                 self.rot = action//11
                 '''
                 if self.current_arr[self.current_index] in self.L_shape_a or self.current_arr[self.current_index] in self.o_shape_a:
@@ -787,8 +799,7 @@ class Game:
                    self.movL = (action%11)-2
                 '''
                 self.movL = (action%11)
-                print ('self.movL %d' %self.movL) 
-                print ('self.rot %d'  %self.rot) 
+                print ('%d => $%d, %d' %(action,self.rot, self.movL))
                 self.doAction = True
                 self.usemodel = False
 
@@ -797,16 +808,10 @@ class Game:
                        self.rotate()
                if self.rot ==  self.current_index:
                     if not self.adjust:
-                         a = np.array(self.current_arr[self.current_index])
-                         x,y = a.shape
-                         print (x,y)
-                         if  x == 4:
-                             pass
-                         elif x < y:
-                             self.movL -= 2
-                         else:
-                             self.movL -= 1
-                         #print ('acutal move ' + str(self.movL))
+                         a =  self.adjust_lo[self.ind] 
+                         x = a[self.current_index]
+                         self.movL -= x
+                         #print ('acutal move ' + str(x))
                          self.adjust = True
                     if  self.movL !=  -1:
                          self.movL -=1
@@ -822,7 +827,6 @@ class Game:
                 self.use_min_max = False
                 self.useMinMax() 
 
-            self.handleKeyEvent()                         
             self.screen.blit(text_tetris, ((self.DEFAULT_POS_X+6)*self.b_height, (1 )  * self.b_height))
             #self.displayLines()   
             self.drawEmptyBlocks()

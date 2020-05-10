@@ -51,7 +51,7 @@ class Model:
         self.model.summary()
 
     def trainModel(self, x, y):
-        h = self.model.fit(states, actions, batch_size=1, epochs=1, validation_data=[states, actions])
+        h = self.model.fit(states, actions, batch_size=100, epochs=100, validation_data=[states, actions])
 
     def saveModel(self):
         self.model.save('model_save.h5')

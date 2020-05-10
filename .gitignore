@@ -3,6 +3,7 @@
 .DS_Store
 save_game
 report/~$mid_report.pptx
+report/~$report.docx
 build
 dist/
 game.spec

@@ -5,5 +5,8 @@ save_game
 report/~$mid_report.pptx
 report/~$report.docx
 build
+all_game
+save_data
+model_save.h5
 dist/
 game.spec

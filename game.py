@@ -283,9 +283,9 @@ class Game:
             #print ('index:%d' %self.current_index)
             #print (z)
             z = self.getState()
-            action = (self.current_x) + (10*self.current_index)
+            action = (self.current_x) + (11*self.current_index)
             #print ('action: %d' %action)
-            z[z>0] = 1
+            #z[z>0] = 1
             self.action_np_array.append(action)
             self.state_np_array.append(z)
 
